@@ -1,17 +1,15 @@
 import { hasCookie } from "cookies-next";
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-//import { auth } from "./app/api/auth/[...nextauth]/route";
-
-//import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { auth } from "./auth";
+//import { authOptions } from "./app/api/auth/[...nextauth]/route";
 
 //import { getServerSession } from "next-auth";
 
-export function middleware(request) {
+export async function middleware(request) {
   let isAuthentificated = false;
-  // const session = await getServerSession(authOptions);
-
-  //const session = await auth();
+  const session = await auth();
+  console.log(session);
   // Check if is invited user
   if (hasCookie("guest", { cookies })) {
     isAuthentificated = true;

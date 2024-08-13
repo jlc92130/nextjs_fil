@@ -10,7 +10,7 @@ export default function Pass() {
   const router = useRouter();
   // Function
   const createCookieGuest = () => {
-    // Generate a new cookie
+    // Creation of a cookie named guest
     setCookie("guest", "true");
     // Redirect
     router.push("/");
