@@ -66,12 +66,12 @@ export const authOptions = {
   callbacks: {
     async jwt({ token, user }) {
       user && (token.user = user); // token has a user variable in which we put user object
-
       return token;
     },
     async session({ session, user, token }) {
       session.user = token.user; // session has a user variable in which we put the user
       const email = session.user.email; // or {email} = session.user
+      const pseudo = session.user.pseudo;
       // connect to Mongodb cluster
       const client = await MongoClient.connect(process.env.MONGODB_CLIENT);
       // connect to Mongodb client
@@ -91,10 +91,20 @@ export const authOptions = {
         profile: user.profile,
       }))[0];
 
+      //get the posts
+      // let postsDB = await db.collection("posts").find({ pseudo }).toArray();
+      // postsDB = postsDB.map((post) => ({
+      //   _id: post._id.toString(),
+      //   profile: post.profile,
+      //   pseudo: post.pseudo,
+      //   content: post.content,
+      // }));
+
       await client.close();
       return {
         ...session,
         user: { ...userDB },
+        //posts: { ...postsDB },
       };
     },
   },

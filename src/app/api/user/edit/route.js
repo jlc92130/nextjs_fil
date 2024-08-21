@@ -26,6 +26,11 @@ export async function POST(request) {
       .limit(1)
       .toArray();
 
+    /// nouveau codeeeeeeeeeeeeeeee
+
+    //let posts = (await db.collection("posts")).find({ pseudo }).toArray();
+    /// fin nouveau codeeeeeeeeeeee
+
     if (user.lenght === 0) {
       await client.close();
       return NextResponse.json({ error: "user not found" }, { status: 404 });
@@ -42,6 +47,19 @@ export async function POST(request) {
         },
       }
     );
+    //  nouveau        coddddeeeeeeeeeeeeeeeeeeeee
+    /// Update the avar of the posts
+    // await db.collection("posts").updateMany(
+    //   { pseudo: pseudo },
+    //   {
+    //     $set: {
+    //       profile: profile,
+    //     },
+    //   }
+    // );
+
+    // FIN NOUVEAU CODEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
+
     await client.close();
 
     return NextResponse.json({ user }, { status: 200 });

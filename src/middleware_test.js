@@ -9,7 +9,7 @@ import { auth } from "./auth";
 export async function middleware(request) {
   let isAuthentificated = false;
   const session = await auth();
-  console.log(session);
+
   // Check if is invited user
   if (hasCookie("guest", { cookies })) {
     isAuthentificated = true;

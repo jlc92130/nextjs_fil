@@ -9,13 +9,15 @@ import { toast } from "react-toastify";
 import { useSession } from "next-auth/react";
 import { createPortal } from "react-dom";
 import Button from "@/components/Button/Button";
+import { checkUrl } from "@/utils/checkUrl";
+import { revalidatePath } from "next/cache";
 
 export default function Profile() {
   // Variable
   const params = useParams(); // we can use it in "client" page
   const pseudo = params.pseudo.slice(3); //%43pseudo  => pseudo
   const router = useRouter(); // we are in "client" so we can use it
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
 
   // State
   const [user, setUser] = useState([]);
@@ -42,20 +44,31 @@ export default function Profile() {
       document.body.style.overflow = "unset";
     }
   }, [openModale]);
+
   // Functions
 
+  // if we press "Modifier le profil" then we execute edit
   const edit = async () => {
-    // set input
+    // fill the state
     setProfileInput(user.profile);
     setBioInput(user.bio);
     setLinkInput(user.url);
     setOpenModale(true);
   };
 
+  // we execute editUser after clicking on "Terminer"
   const editUser = async () => {
     if (isLoading) return;
     setIsLoading(true);
-    const response = await fetch("/api/user/edit", {
+    // Verify the new profile url(profileInput) if we change the profile pic
+    if (profileInput && !checkUrl(profileInput)) {
+      toast.error("Vous devez entrer une url valide");
+      setIsLoading(false); // allow to submit again
+      return;
+    }
+
+    // we call the api to update the db with the new url profile, bio or url website
+    const response1 = await fetch("/api/user/edit", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -65,8 +78,8 @@ export default function Profile() {
         url: linkInput,
       }),
     });
-    const data = await response.json();
-    if (!response.ok) {
+    const data = await response1.json();
+    if (!response1.ok) {
       setIsLoading(false);
       toast.error("Une erreur est survenue");
       return;
@@ -77,15 +90,34 @@ export default function Profile() {
       bio: bioInput,
       url: linkInput,
     };
+
+    // We will call api to update the "posts" database with the new profile pic
+    const response2 = await fetch("/api/posts/edit", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        pseudo: pseudo,
+        profile: profileInput,
+      }),
+    });
+
+    const dataPosts = await response2.json();
+    if (!response2.ok) {
+      setIsLoading(false);
+      toast.error("Une erreur est survenue");
+      return;
+    }
+
     setUser(newUser);
     setOpenModale(false);
     setIsLoading(false);
     toast.success("profile mis à jour");
+    fetchUserDataPosts();
   };
 
   const fetchUserDataPosts = async () => {
     const response = await fetch("/api/user", {
-      //we can use fetch because we are in a client component
+      //  we can use fetch because we are in a client component
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -105,13 +137,30 @@ export default function Profile() {
       return; // to stop the program
     }
 
-    setPosts(data.posts);
+    // We ask the api to send all the posts from db to display the new profile pic
+    const response2 = await fetch("/api/posts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        pseudo: pseudo,
+      }),
+    });
+
+    const dataPosts = await response2.json();
+    if (!response2.ok) {
+      setIsLoading(false);
+      toast.error("Une erreur est survenue");
+      return;
+    }
+
+    // fill the state
+    setPosts(dataPosts.posts);
     setUser(data.user);
   };
 
   return (
     <ConnectedLayout>
-      {/*  Modal to modify the profile    */}
+      {/*  MODAL to modify the profile    */}
       {openModale &&
         createPortal(
           <div /* this div is the modal   */
@@ -193,6 +242,8 @@ export default function Profile() {
           </div>,
           document.body
         )}
+
+      {/* -----------END MODAL -------------- */}
 
       <div className="mt-10 md:w-[700px] mx-auto text-white">
         {/* Infos  */}
