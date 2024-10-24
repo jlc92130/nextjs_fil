@@ -5,7 +5,7 @@ export async function POST(request) {
   // Variables
   const data = await request.json();
   const pseudo = data.pseudo;
-  const profile = data.profile;
+  const profile = data.profile; // image url
   let client;
 
   try {
@@ -32,9 +32,13 @@ export async function POST(request) {
       }
     );
 
+    // we call the new posts from database
+    let newPosts = await db.collection("posts").find({ pseudo }).toArray();
+
     await client.close();
 
-    return NextResponse.json({ posts }, { status: 200 });
+    // send the newPosts
+    return NextResponse.json({ newPosts }, { status: 200 });
   } catch (e) {
     await client.close();
     return NextResponse.json({ error: e.message }, { status: 500 });

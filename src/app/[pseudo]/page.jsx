@@ -10,7 +10,6 @@ import { useSession } from "next-auth/react";
 import { createPortal } from "react-dom";
 import Button from "@/components/Button/Button";
 import { checkUrl } from "@/utils/checkUrl";
-import { revalidatePath } from "next/cache";
 
 export default function Profile() {
   // Variable
@@ -79,6 +78,7 @@ export default function Profile() {
       }),
     });
     const data = await response1.json();
+
     if (!response1.ok) {
       setIsLoading(false);
       toast.error("Une erreur est survenue");
@@ -102,17 +102,18 @@ export default function Profile() {
     });
 
     const dataPosts = await response2.json();
+
     if (!response2.ok) {
       setIsLoading(false);
       toast.error("Une erreur est survenue");
       return;
     }
 
+    setPosts(dataPosts.newPosts);
     setUser(newUser);
     setOpenModale(false);
     setIsLoading(false);
     toast.success("profile mis à jour");
-    fetchUserDataPosts();
   };
 
   const fetchUserDataPosts = async () => {
@@ -160,7 +161,7 @@ export default function Profile() {
 
   return (
     <ConnectedLayout>
-      {/*  MODAL to modify the profile    */}
+      {/* ---------------  MODAL to modify the profile   -------------------*/}
       {openModale &&
         createPortal(
           <div /* this div is the modal   */

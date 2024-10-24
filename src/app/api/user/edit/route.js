@@ -26,8 +26,6 @@ export async function POST(request) {
       .limit(1)
       .toArray();
 
-    /// nouveau codeeeeeeeeeeeeeeee
-
     //let posts = (await db.collection("posts")).find({ pseudo }).toArray();
     /// fin nouveau codeeeeeeeeeeee
 
@@ -47,22 +45,14 @@ export async function POST(request) {
         },
       }
     );
-    //  nouveau        coddddeeeeeeeeeeeeeeeeeeeee
-    /// Update the avar of the posts
-    // await db.collection("posts").updateMany(
-    //   { pseudo: pseudo },
-    //   {
-    //     $set: {
-    //       profile: profile,
-    //     },
-    //   }
-    // );
 
-    // FIN NOUVEAU CODEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
-
+    let newUser = (await db.collection("users"))
+      .find({ pseudo })
+      .limit(1)
+      .toArray();
     await client.close();
 
-    return NextResponse.json({ user }, { status: 200 });
+    return NextResponse.json({ newUser }, { status: 200 });
   } catch (e) {
     await client.close();
     return NextResponse.json({ error: e.message }, { status: 500 });

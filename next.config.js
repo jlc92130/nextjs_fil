@@ -1,7 +1,5 @@
-const { PHASE_DEVELOPMENT_SERVER } = require("next/constants");
-
 module.exports = (env) => {
-  if (env == PHASE_DEVELOPMENT_SERVER) {
+  if (env == "phase-development-server") {
     return {
       env: {
         MONGODB_CLIENT:

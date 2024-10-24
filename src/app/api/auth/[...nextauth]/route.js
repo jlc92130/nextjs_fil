@@ -2,8 +2,15 @@ import { MongoClient } from "mongodb";
 import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcrypt";
 import NextAuth from "next-auth";
+import jwt from "jsonwebtoken";
+
+//import { createSession } from "@/app/_lib/session";
+import { NextResponse } from "next/server";
+
+//import { authConfig } from "../../../../auth.config";
 
 export const authOptions = {
+  //...authConfig,
   providers: [
     Credentials({
       name: "Credentials",
@@ -49,13 +56,36 @@ export const authOptions = {
             profile: user.profile,
           }))[0]; // we want to return the first object of the tab user
           await client.close();
-          return user;
+          ///////   CREATE SESSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSIONNNNNNNNNNNNNNNNNNNNNNNNN
+
+          // CREATE TOKEN DATA
+          const tokenData = {
+            id: user._id,
+            pseudo: user.pseudo,
+            email: user.email,
+          };
+          // create token
+          const token = await jwt.sign(tokenData, process.env.NEXTAUTH_SECRET, {
+            expiresIn: "1d",
+          });
+
+          // console.log("Token:", token);
+
+          const resp = NextResponse.json({
+            message: "Login successful",
+            success: true,
+            token,
+          });
+          //resp.cookies.set("token", token, { httpOnly: true });
+
+          return resp;
         } catch (e) {
           throw new Error(e.message);
         }
       },
     }),
   ],
+
   session: {
     strategy: "jwt",
   },
@@ -65,18 +95,19 @@ export const authOptions = {
   },
   callbacks: {
     async jwt({ token, user }) {
-      user && (token.user = user); // token has a user variable in which we put user object
+      user && (token.user = user);
       return token;
     },
     async session({ session, user, token }) {
-      session.user = token.user; // session has a user variable in which we put the user
-      const email = session.user.email; // or {email} = session.user
-      const pseudo = session.user.pseudo;
-      // connect to Mongodb cluster
+      session.user = token.user;
+
+      // Connect to the MongoDB cluster
       const client = await MongoClient.connect(process.env.MONGODB_CLIENT);
-      // connect to Mongodb client
+
+      // Connect to the MongoDB database
       const db = client.db(process.env.MONGODB_DATABASE);
-      // get the user
+
+      // Get the user
       let userDB = await db
         .collection("users")
         .find({ email })
@@ -85,26 +116,26 @@ export const authOptions = {
 
       userDB = userDB.map((user) => ({
         _id: user._id.toString(),
+        username: user.username,
         pseudo: user.pseudo,
         email: user.email,
-        username: user.username,
         profile: user.profile,
       }))[0];
 
-      //get the posts
-      // let postsDB = await db.collection("posts").find({ pseudo }).toArray();
-      // postsDB = postsDB.map((post) => ({
-      //   _id: post._id.toString(),
-      //   profile: post.profile,
-      //   pseudo: post.pseudo,
-      //   content: post.content,
-      // }));
+      // const parsedResponse = await res.json();
+
+      // const accessToken = parsedResponse?.accessToken;
+      // const refreshToken = parsedResponse?.refreshToken;
 
       await client.close();
+
       return {
         ...session,
-        user: { ...userDB },
-        //posts: { ...postsDB },
+        user: {
+          ...userDB,
+        },
+        //accessToken,
+        //refreshToken,
       };
     },
   },

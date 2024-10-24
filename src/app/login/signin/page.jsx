@@ -5,6 +5,7 @@ import { toast } from "react-toastify";
 import { checkEmail } from "@/utils/checkemailsyntax";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
+import { setCookie } from "cookies-next";
 
 export default function Signin() {
   //Variable
@@ -31,12 +32,17 @@ export default function Signin() {
         password,
         redirect: false,
       });
+      console.log(`respppppppppppppppppppppp ${resp.message}`);
+
       if (resp.error) {
         return toast.error(resp.error);
       }
     } catch (e) {
       return toast.error(e.message);
     }
+
+    // Creation of a cookie named iamlogged
+    //setCookie("iamlogged", "true");
 
     //Success
     toast.success("vous êtes connecté");
@@ -47,6 +53,7 @@ export default function Signin() {
 
   return (
     <div className="w-[440px]  mx-auto">
+      {/*  Title Se connecter  */}
       <h1 className="title flex items-center  gap-1">
         <Link href="/login">
           <svg
